@@ -1,5 +1,6 @@
-import { firebaseConfig, appName } from "./firebase-config.js";
+import { firebaseConfig, appName, appCheckSiteKey } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
@@ -9,6 +10,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
+
+// Firebase App Check with reCAPTCHA v3.
+// The site key is public by design; the reCAPTCHA secret key is never included in client code.
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider(appCheckSiteKey),
+  isTokenAutoRefreshEnabled: true
+});
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();

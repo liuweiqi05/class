@@ -160,3 +160,19 @@ The student page uses a Firestore real-time listener for room/question updates.
 If a mobile browser interrupts the streaming listener, the page automatically
 falls back to a 2-second Firestore poll. A transient connection failure is shown
 as `SYNCING` rather than incorrectly marking the room `CLOSED`.
+
+## Firebase App Check
+
+This build initializes Firebase App Check with reCAPTCHA v3.
+
+Public site key:
+`6Le7DYotAAAAAMOJgmVkf92IGLfztn4V3PIPFNBI`
+
+The reCAPTCHA secret key is intentionally NOT included in the project.
+
+Before enabling Firestore App Check enforcement:
+1. Deploy this build.
+2. Test instructor sign-in and room creation.
+3. Test student QR join, attendance check-in, and response submission.
+4. Confirm App Check metrics show verified requests.
+5. Only then enable enforcement for Cloud Firestore.
