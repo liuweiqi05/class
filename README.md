@@ -166,7 +166,7 @@ as `SYNCING` rather than incorrectly marking the room `CLOSED`.
 This build initializes Firebase App Check with reCAPTCHA v3.
 
 Public site key:
-`6Le7DYotAAAAAMOJgmVkf92IGLfztn4V3PIPFNBI`
+` `
 
 The reCAPTCHA secret key is intentionally NOT included in the project.
 
