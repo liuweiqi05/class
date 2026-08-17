@@ -39,3 +39,5 @@ th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04
 .pill{display:inline-block;border-radius:999px;padding:5px 9px;background:#edf2ff;color:#2445a8;font-size:12px;font-weight:750}
 .live{background:#e9f8ef;color:#11643b}.closed{background:#f2f4f7;color:#667085}
 hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+
+.syncing{background:#fff8e8;color:#684700}

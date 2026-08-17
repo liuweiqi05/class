@@ -153,3 +153,10 @@ You should check your university's privacy/FERPA/IT policy before using IP data 
 - `styles.css` — shared styling
 - `firebase-config.js` — Firebase web configuration
 - `firestore.rules` — Firestore access rules
+
+## Mobile connection reliability
+
+The student page uses a Firestore real-time listener for room/question updates.
+If a mobile browser interrupts the streaming listener, the page automatically
+falls back to a 2-second Firestore poll. A transient connection failure is shown
+as `SYNCING` rather than incorrectly marking the room `CLOSED`.

@@ -16,6 +16,7 @@ let currentRoomCode = null;
 let currentUser = null;
 let currentQuestionId = null;
 let unsubscribeRoom = null;
+let roomPollTimer = null;
 
 document.title = `${appName} — Student`;
 
@@ -61,31 +62,108 @@ async function joinRoom(){
     $("roomExpiry").textContent = `Expires ${room.expiresAt.toDate().toLocaleString()}`;
     $("privacyNotice").classList.toggle("hidden", !(room.attendanceEnabled && room.ipLoggingEnabled));
     $("checkinCard").classList.toggle("hidden", !room.attendanceEnabled);
+    $("studentName").value = localStorage.getItem(`cp_name_${code}`) || "";
+    $("studentId4").value = localStorage.getItem(`cp_id4_${code}`) || "";
     watchRoom(ref);
   }catch(e){
+    console.error("Join room failed:", e);
     setMsg($("joinMsg"),e.message || "Unable to join.","error");
   }finally{
     $("joinBtn").disabled = false;
   }
 }
 
-function watchRoom(ref){
-  if(unsubscribeRoom) unsubscribeRoom();
-  unsubscribeRoom = onSnapshot(ref, snap => {
-    if(!snap.exists()) return closeRoom("Room was removed.");
-    currentRoom = snap.data();
-    if(!isActive(currentRoom)) return closeRoom("This room has closed or expired.");
-    currentQuestionId = currentRoom.currentQuestionId || null;
-    $("questionText").textContent = currentRoom.currentQuestion || "Waiting for question…";
-    $("roomExpiry").textContent = `Expires ${currentRoom.expiresAt.toDate().toLocaleString()}`;
-  }, () => closeRoom("Connection to the room was lost."));
+function applyRoomState(room){
+  currentRoom = room;
+
+  if(!isActive(room)){
+    setRoomClosed("This room has closed or expired.");
+    return false;
+  }
+
+  currentQuestionId = room.currentQuestionId || null;
+  $("questionText").textContent = room.currentQuestion || "Waiting for question…";
+  $("roomExpiry").textContent = `Expires ${room.expiresAt.toDate().toLocaleString()}`;
+  $("roomStatus").textContent = "LIVE";
+  $("roomStatus").className = "pill live";
+  $("submitBtn").disabled = false;
+  $("checkinBtn").disabled = false;
+
+  // Clear a transient connection message once synchronization succeeds.
+  if($("submitMsg").textContent.includes("connection") ||
+     $("submitMsg").textContent.includes("Synchronizing") ||
+     $("submitMsg").textContent.includes("Reconnecting")){
+    setMsg($("submitMsg"),"","");
+  }
+  return true;
 }
 
-function closeRoom(msg){
+async function pollRoom(ref){
+  try{
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      setRoomClosed("Room was removed.");
+      return;
+    }
+    applyRoomState(snap.data());
+  }catch(e){
+    // A temporary network error should not falsely mark an active room CLOSED.
+    $("roomStatus").textContent = "SYNCING";
+    $("roomStatus").className = "pill";
+    setMsg(
+      $("submitMsg"),
+      "Reconnecting to the room… You can keep this page open.",
+      "notice"
+    );
+    console.warn("Room poll failed:", e);
+  }
+}
+
+function startPolling(ref){
+  if(roomPollTimer) clearInterval(roomPollTimer);
+  pollRoom(ref);
+  roomPollTimer = setInterval(() => pollRoom(ref), 2000);
+}
+
+function watchRoom(ref){
+  if(unsubscribeRoom) unsubscribeRoom();
+  if(roomPollTimer){
+    clearInterval(roomPollTimer);
+    roomPollTimer = null;
+  }
+
+  // Use Firestore's real-time listener first.
+  unsubscribeRoom = onSnapshot(ref, snap => {
+    if(!snap.exists()){
+      setRoomClosed("Room was removed.");
+      return;
+    }
+    applyRoomState(snap.data());
+  }, error => {
+    // Some mobile/browser/network combinations can interrupt the streaming
+    // listener. Fall back to a small getDoc poll instead of falsely closing
+    // an otherwise active room.
+    console.warn("Realtime room listener failed; switching to polling:", error);
+    $("roomStatus").textContent = "SYNCING";
+    $("roomStatus").className = "pill";
+    setMsg(
+      $("submitMsg"),
+      "Live connection was interrupted. Synchronizing every 2 seconds…",
+      "notice"
+    );
+    startPolling(ref);
+  });
+}
+
+function setRoomClosed(msg){
   $("roomStatus").textContent = "CLOSED";
   $("roomStatus").className = "pill closed";
   $("submitBtn").disabled = true;
   $("checkinBtn").disabled = true;
+  if(roomPollTimer){
+    clearInterval(roomPollTimer);
+    roomPollTimer = null;
+  }
   setMsg($("submitMsg"),msg,"notice");
 }
 
