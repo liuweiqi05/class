@@ -11,6 +11,3 @@ export const firebaseConfig = {
 
 export const appName = "Class Pulse";
 export const enableIpLogging = true;
-
-// Public reCAPTCHA v3 site key for Firebase App Check.
-export const appCheckSiteKey = "6LeNGootAAAAAGaBhtJ0j_8ZZzyN9OVkZKepM-Hu";

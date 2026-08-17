@@ -160,39 +160,3 @@ The student page uses a Firestore real-time listener for room/question updates.
 If a mobile browser interrupts the streaming listener, the page automatically
 falls back to a 2-second Firestore poll. A transient connection failure is shown
 as `SYNCING` rather than incorrectly marking the room `CLOSED`.
-
-## Firebase App Check
-
-This build initializes Firebase App Check with reCAPTCHA v3.
-
-Public site key:
-`6Le7DYotAAAAAMOJgmVkf92IGLfztn4V3PIPFNBI`
-
-The reCAPTCHA secret key is intentionally NOT included in the project.
-
-Before enabling Firestore App Check enforcement:
-1. Deploy this build.
-2. Test instructor sign-in and room creation.
-3. Test student QR join, attendance check-in, and response submission.
-4. Confirm App Check metrics show verified requests.
-5. Only then enable enforcement for Cloud Firestore.
-
-## App Check v2 diagnostic build
-
-This build explicitly requests an App Check token before Firebase Auth and
-Firestore clients are created. Both student and instructor pages briefly show
-`Security check active.` when a token is obtained.
-
-After deploying:
-1. Hard-refresh both pages.
-2. Verify `Security check active.` appears.
-3. Create a new room, join it from a phone, check in, publish a question, and submit a response.
-4. In Firebase App Check metrics, use the shortest available time range and wait a few minutes for metrics ingestion.
-5. Do not enable Firestore enforcement until recent requests are reported as Verified.
-
-## App Check diagnostic build
-
-If App Check cannot obtain a token, the page now shows the Firebase error code
-and message. Do not enable Firestore App Check enforcement while this diagnostic
-reports a failure. The diagnostic intentionally does not expose the reCAPTCHA
-secret key.
