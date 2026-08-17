@@ -176,3 +176,16 @@ Before enabling Firestore App Check enforcement:
 3. Test student QR join, attendance check-in, and response submission.
 4. Confirm App Check metrics show verified requests.
 5. Only then enable enforcement for Cloud Firestore.
+
+## App Check v2 diagnostic build
+
+This build explicitly requests an App Check token before Firebase Auth and
+Firestore clients are created. Both student and instructor pages briefly show
+`Security check active.` when a token is obtained.
+
+After deploying:
+1. Hard-refresh both pages.
+2. Verify `Security check active.` appears.
+3. Create a new room, join it from a phone, check in, publish a question, and submit a response.
+4. In Firebase App Check metrics, use the shortest available time range and wait a few minutes for metrics ingestion.
+5. Do not enable Firestore enforcement until recent requests are reported as Verified.

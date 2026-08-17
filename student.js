@@ -1,6 +1,6 @@
 import { firebaseConfig, appName, enableIpLogging, appCheckSiteKey } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
+import { initializeAppCheck, ReCaptchaV3Provider, getToken } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, addDoc, collection, serverTimestamp,
@@ -9,12 +9,31 @@ import {
 
 const app = initializeApp(firebaseConfig);
 
-// Firebase App Check with reCAPTCHA v3.
-// The site key is public by design; the reCAPTCHA secret key is never included in client code.
-initializeAppCheck(app, {
+// Initialize Firebase App Check before creating Auth/Firestore clients.
+// We explicitly fetch a token once so the first Firestore request is not sent
+// before App Check is ready.
+const appCheck = initializeAppCheck(app, {
   provider: new ReCaptchaV3Provider(appCheckSiteKey),
   isTokenAutoRefreshEnabled: true
 });
+
+async function ensureAppCheckReady() {
+  try {
+    const result = await getToken(appCheck, false);
+    console.info("Firebase App Check ready.", {
+      tokenPresent: Boolean(result?.token)
+    });
+    return true;
+  } catch (error) {
+    console.error("Firebase App Check token request failed:", error);
+    return false;
+  }
+}
+
+const appCheckReady = await ensureAppCheckReady();
+if (!appCheckReady) {
+  console.warn("App Check did not return a valid token before Firebase clients initialized.");
+}
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -27,6 +46,17 @@ let unsubscribeRoom = null;
 let roomPollTimer = null;
 
 document.title = `${appName} — Student`;
+
+const appCheckStatus = $("appCheckStatus");
+if (appCheckReady) {
+  appCheckStatus.className = "success";
+  appCheckStatus.textContent = "Security check active.";
+  setTimeout(() => appCheckStatus.classList.add("hidden"), 1800);
+} else {
+  appCheckStatus.className = "error";
+  appCheckStatus.textContent = "Security check failed. Reload the page before using this room.";
+}
+
 
 async function ensureAuth(){
   if (auth.currentUser) return auth.currentUser;
