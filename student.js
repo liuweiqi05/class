@@ -26,6 +26,12 @@ async function ensureAppCheckReady() {
     return true;
   } catch (error) {
     console.error("Firebase App Check token request failed:", error);
+    window.__classPulseAppCheckError = {
+      code: error?.code || "",
+      message: error?.message || String(error),
+      name: error?.name || "",
+      stack: error?.stack || ""
+    };
     return false;
   }
 }
@@ -54,7 +60,12 @@ if (appCheckReady) {
   setTimeout(() => appCheckStatus.classList.add("hidden"), 1800);
 } else {
   appCheckStatus.className = "error";
-  appCheckStatus.textContent = "Security check failed. Reload the page before using this room.";
+  const e = window.__classPulseAppCheckError || {};
+  appCheckStatus.innerHTML =
+    "<strong>Security check failed.</strong><br>" +
+    "Code: " + (e.code || "(none)") + "<br>" +
+    "Message: " + (e.message || "(no message)") + "<br>" +
+    "<small>This diagnostic does not display your reCAPTCHA secret key.</small>";
 }
 
 

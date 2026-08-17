@@ -189,3 +189,10 @@ After deploying:
 3. Create a new room, join it from a phone, check in, publish a question, and submit a response.
 4. In Firebase App Check metrics, use the shortest available time range and wait a few minutes for metrics ingestion.
 5. Do not enable Firestore enforcement until recent requests are reported as Verified.
+
+## App Check diagnostic build
+
+If App Check cannot obtain a token, the page now shows the Firebase error code
+and message. Do not enable Firestore App Check enforcement while this diagnostic
+reports a failure. The diagnostic intentionally does not expose the reCAPTCHA
+secret key.
