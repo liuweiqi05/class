@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Class Pulse — Student</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="brand">Class <span>Pulse</span></div>
+  <a class="btn ghost" href="instructor.html">Instructor</a>
+</header>
+<main>
+  <div id="joinCard" class="card">
+    <h1>Join a class room</h1>
+    <p class="muted">Enter the temporary room code shown by your instructor.</p>
+    <div class="grid">
+      <div>
+        <label for="roomCode">Room code</label>
+        <input id="roomCode" maxlength="8" autocomplete="off" placeholder="ABC123">
+      </div>
+      <div style="align-self:end">
+        <button id="joinBtn" class="primary">Join room</button>
+      </div>
+    </div>
+    <div id="joinMsg" style="margin-top:14px"></div>
+  </div>
+
+  <div id="roomView" class="hidden">
+    <div class="card">
+      <div class="row space">
+        <div>
+          <div class="muted">Room</div>
+          <div id="roomCodeView" class="code"></div>
+        </div>
+        <span id="roomStatus" class="pill live">LIVE</span>
+      </div>
+      <h2 id="roomTitle" style="margin-top:18px"></h2>
+      <p id="roomExpiry" class="muted"></p>
+      <div id="privacyNotice" class="notice hidden">
+        Attendance mode is enabled. This room records your public IP address, check-in time, display name, and optional student-ID suffix. Public IPs can be shared by many devices on campus networks and are not used as the sole proof of attendance.
+      </div>
+    </div>
+
+    <div id="checkinCard" class="card">
+      <h2>Attendance check-in</h2>
+      <div class="grid">
+        <div>
+          <label for="studentName">Your name</label>
+          <input id="studentName" maxlength="80" autocomplete="name" placeholder="First and last name">
+        </div>
+        <div>
+          <label for="studentId4">Last 4 of student ID <span class="muted">(optional)</span></label>
+          <input id="studentId4" maxlength="4" inputmode="numeric" placeholder="1234">
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button id="checkinBtn" class="primary">Check in</button>
+        <span id="checkinMsg"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Current question</h2>
+      <div id="questionText" style="font-size:20px;font-weight:750;margin-bottom:16px">Waiting for question…</div>
+      <label for="responseText">Your thoughts</label>
+      <textarea id="responseText" maxlength="1500" placeholder="Type your response…"></textarea>
+      <div class="row space" style="margin-top:12px">
+        <span id="charCount" class="muted">0 / 1500</span>
+        <button id="submitBtn" class="primary">Submit response</button>
+      </div>
+      <div id="submitMsg" style="margin-top:12px"></div>
+    </div>
+  </div>
+</main>
+<script type="module" src="student.js"></script>
+</body>
+</html>

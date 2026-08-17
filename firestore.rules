@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isInstructor() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/instructors/$(request.auth.uid))
+        && get(/databases/$(database)/documents/instructors/$(request.auth.uid)).data.enabled == true;
+    }
+
+    function activeRoom(code) {
+      return exists(/databases/$(database)/documents/rooms/$(code))
+        && get(/databases/$(database)/documents/rooms/$(code)).data.active == true
+        && get(/databases/$(database)/documents/rooms/$(code)).data.expiresAt > request.time;
+    }
+
+    // Bootstrap instructor documents manually in Firebase Console.
+    match /instructors/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /rooms/{code} {
+      // Students need to read the active room/question.
+      allow read: if signedIn();
+      allow create: if isInstructor()
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.expiresAt > request.time;
+      allow update, delete: if isInstructor()
+                            && resource.data.ownerUid == request.auth.uid;
+
+      match /attendance/{uid} {
+        // Instructor can read attendance. A student can read only their own check-in.
+        allow read: if isInstructor() || (signedIn() && request.auth.uid == uid);
+
+        // First check-in. Prevent spoofing another anonymous UID.
+        allow create: if signedIn()
+                      && request.auth.uid == uid
+                      && activeRoom(code)
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.displayName is string
+                      && request.resource.data.displayName.size() > 0
+                      && request.resource.data.displayName.size() <= 80
+                      && request.resource.data.studentIdLast4 is string
+                      && request.resource.data.studentIdLast4.size() <= 4
+                      && request.resource.data.responseCount == 0;
+
+        // After check-in, students may only increment responseCount by one.
+        // Name, ID suffix, IP, timestamp, UID and user-agent are immutable to the student.
+        allow update: if isInstructor()
+                      || (signedIn()
+                          && request.auth.uid == uid
+                          && activeRoom(code)
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responseCount'])
+                          && request.resource.data.responseCount == resource.data.responseCount + 1);
+        allow delete: if isInstructor();
+      }
+
+      match /responses/{responseId} {
+        allow read: if isInstructor();
+        allow create: if signedIn()
+                      && activeRoom(code)
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 1500
+                      && request.resource.data.questionId is string
+                      && request.resource.data.questionId ==
+                         get(/databases/$(database)/documents/rooms/$(code)).data.currentQuestionId;
+        allow update, delete: if isInstructor();
+      }
+    }
+  }
+}

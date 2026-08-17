@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Class Pulse — Instructor</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</head>
+<body>
+<header>
+  <div class="brand">Class <span>Pulse</span> · Instructor</div>
+  <div class="row">
+    <span id="authLabel" class="muted">Not signed in</span>
+    <button id="signInBtn" class="primary">Sign in with Google</button>
+    <button id="signOutBtn" class="ghost hidden">Sign out</button>
+  </div>
+</header>
+<main>
+  <div id="authMsg"></div>
+
+  <div id="appArea" class="hidden">
+    <div class="card">
+      <h2>Create temporary room</h2>
+      <div class="grid3">
+        <div>
+          <label for="roomTitleInput">Class / room title</label>
+          <input id="roomTitleInput" maxlength="100" placeholder="Ethical Hacking — Week 1">
+        </div>
+        <div>
+          <label for="duration">Expires after</label>
+          <select id="duration">
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60" selected>60 minutes</option>
+            <option value="90">90 minutes</option>
+            <option value="120">2 hours</option>
+            <option value="180">3 hours</option>
+          </select>
+        </div>
+        <div>
+          <label for="attendanceMode">Attendance</label>
+          <select id="attendanceMode">
+            <option value="on" selected>Enabled + IP log</option>
+            <option value="off">Disabled</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button id="createRoomBtn" class="primary">Create room</button>
+        <span id="createMsg"></span>
+      </div>
+    </div>
+
+    <div id="roomPanel" class="hidden">
+      <div class="card">
+        <div class="grid">
+          <div>
+            <div class="muted">Temporary room code</div>
+            <div id="codeView" class="code"></div>
+            <p id="expiresView" class="muted"></p>
+            <div class="row">
+              <button id="copyLinkBtn" class="secondary">Copy student link</button>
+              <button id="closeRoomBtn" class="danger">Close room now</button>
+            </div>
+            <p class="small muted">The QR code opens the student page with this room code prefilled.</p>
+          </div>
+          <div>
+            <div id="qrcode"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Current question</h2>
+        <label for="questionInput">Question / prompt</label>
+        <textarea id="questionInput" maxlength="500" placeholder="What would you check first in this suspicious email?"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button id="publishQuestionBtn" class="primary">Publish as new question</button>
+          <span id="questionMsg"></span>
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="kpi"><strong id="attendanceCount">0</strong><span>Checked in</span></div>
+        <div class="kpi"><strong id="responseCount">0</strong><span>Responses</span></div>
+        <div class="kpi"><strong id="uniqueIpCount">0</strong><span>Unique public IPs</span></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="row space">
+          <h2 style="margin:0">Attendance</h2>
+          <button id="exportAttendanceBtn" class="secondary">Export attendance CSV</button>
+        </div>
+        <div class="notice" style="margin:14px 0">
+          Public IP is supporting evidence only. Multiple students can share one public IP through campus Wi‑Fi/NAT, and a student's IP can change. Do not use IP alone to decide attendance.
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Name</th><th>ID last 4</th><th>Check-in</th><th>Public IP</th><th>Responses</th></tr></thead>
+            <tbody id="attendanceBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row space">
+          <h2 style="margin:0">Live responses</h2>
+          <button id="exportResponsesBtn" class="secondary">Export responses CSV</button>
+        </div>
+        <div id="responsesList" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+</main>
+<script type="module" src="instructor.js"></script>
+</body>
+</html>
