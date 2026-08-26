@@ -1,6 +1,6 @@
 import { firebaseConfig, appName, appCheckSiteKey } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
@@ -11,37 +11,13 @@ import {
 
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase App Check before creating Auth/Firestore clients.
-// We explicitly fetch a token once so the first Firestore request is not sent
-// before App Check is ready.
-const appCheck = initializeAppCheck(app, {
+// Production App Check initialization: start attestation immediately, but do
+// not block the UI/Auth/Firestore on an explicit diagnostic token request.
+initializeAppCheck(app, {
   provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
   isTokenAutoRefreshEnabled: true
 });
 
-async function ensureAppCheckReady() {
-  try {
-    const result = await getToken(appCheck, false);
-    console.info("Firebase App Check ready.", {
-      tokenPresent: Boolean(result?.token)
-    });
-    return true;
-  } catch (error) {
-    console.error("Firebase App Check token request failed:", error);
-    window.__classPulseAppCheckError = {
-      code: error?.code || "",
-      message: error?.message || String(error),
-      name: error?.name || "",
-      stack: error?.stack || ""
-    };
-    return false;
-  }
-}
-
-const appCheckReady = await ensureAppCheckReady();
-if (!appCheckReady) {
-  console.warn("App Check did not return a valid token before Firebase clients initialized.");
-}
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
@@ -51,21 +27,6 @@ let user = null, roomCode = null, roomUnsub = null, attendanceUnsub = null, resp
 let attendanceRows = [], responseRows = [];
 
 document.title = `${appName} — Instructor`;
-
-const appCheckStatus = $("appCheckStatus");
-if (appCheckReady) {
-  appCheckStatus.className = "success";
-  appCheckStatus.textContent = "Security check active.";
-  setTimeout(() => appCheckStatus.classList.add("hidden"), 1800);
-} else {
-  appCheckStatus.className = "error";
-  const e = window.__classPulseAppCheckError || {};
-  appCheckStatus.innerHTML =
-    "<strong>Security check failed.</strong><br>" +
-    "Code: " + (e.code || "(none)") + "<br>" +
-    "Message: " + (e.message || "(no message)") + "<br>" +
-    "<small>This diagnostic does not display your reCAPTCHA secret key.</small>";
-}
 
 
 function msg(el,text,type=""){ el.className = type; el.textContent = text; }

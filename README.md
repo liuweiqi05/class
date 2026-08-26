@@ -166,7 +166,7 @@ as `SYNCING` rather than incorrectly marking the room `CLOSED`.
 This build initializes Firebase App Check with reCAPTCHA v3.
 
 Public site key:
-` `
+`6LeNGootAAAAAGaBhtJ0j_8ZZzyN9OVkZKepM-Hu`
 
 The reCAPTCHA secret key is intentionally NOT included in the project.
 
@@ -197,6 +197,12 @@ and message. Do not enable Firestore App Check enforcement while this diagnostic
 reports a failure. The diagnostic intentionally does not expose the reCAPTCHA
 secret key.
 
+## Faster production startup
 
-## reCAPTCHA Enterprise
-This build uses Firebase App Check ReCaptchaEnterpriseProvider. Keep Firestore enforcement in Monitoring until recent requests show as Verified.
+This production build removes the debugging `getToken()` startup gate and the
+temporary Security check banner. App Check still initializes immediately with
+`ReCaptchaEnterpriseProvider` and automatic token refresh enabled.
+
+The page can render and Firebase Auth/Firestore can initialize without waiting
+for an explicit diagnostic token fetch. Browser preconnect hints are also added
+for Google/Firebase endpoints to reduce mobile startup delay.
